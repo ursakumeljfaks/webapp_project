@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import nevergrad as ng
+from scipy.stats import wilcoxon
 
 # Benchmark functions
 def sphere(x):
@@ -277,7 +278,58 @@ if run_button and algorithms:
                     showlegend=True
                 )
                 st.plotly_chart(fig, use_container_width=True)
-                
+    
+    # ===== Statistical comparison =====
+    st.header("Wilcoxon signed rank test")
+    
+    if len(algorithms) >= 2:
+        # Prepare data for all pairs of algorithms
+        algo_pairs = [(algo1, algo2) for i, algo1 in enumerate(algorithms) 
+                     for j, algo2 in enumerate(algorithms) if i < j]
+        
+        test_results = []
+        
+        for algo1, algo2 in algo_pairs:
+            # Extract best values from all runs for each algorithm
+            algo1_values = [r["best_value"] for r in results[algo1]]
+            algo2_values = [r["best_value"] for r in results[algo2]]
+            
+            # Wilcoxon test
+            stat, p_value = wilcoxon(algo1_values, algo2_values)
+            
+            # Is it significant or not
+            significance = "Significant" if p_value < 0.05 else "Not significant"
+            
+            median1 = np.median(algo1_values)
+            median2 = np.median(algo2_values)
+            
+            # Which performed better
+            if median1 < median2:
+                better = algo1
+            elif median2 < median1:
+                better = algo2
+            else:
+                better = "Equal"
+            
+            test_results.append({
+                "Algorithm 1": algo1,
+                "Algorithm 2": algo2,
+                "p-value": p_value,
+                "Significance (α=0.05)": significance,
+                "Median (Algo1)": median1,
+                "Median (Algo2)": median2,
+                "Better performer": better
+            })
+        
+        stats_df = pd.DataFrame(test_results)
+        st.dataframe(stats_df.style.format({
+            "p-value": "{:.4e}",
+            "Median (Algo1)": "{:.4e}",
+            "Median (Algo2)": "{:.4e}"
+        }))
+        
+    else:
+        st.info("At least 2 algorithms required for statistical comparison")
 
 elif run_button and not algorithms:
     st.warning("Please select at least one algorithm to compare!")
