@@ -4,6 +4,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import nevergrad as ng
 from scipy.stats import wilcoxon
+from vrp_parser import *
+from vrp_solutions import *
 
 # Benchmark functions
 def sphere(x):
@@ -335,6 +337,31 @@ elif run_button and not algorithms:
     st.warning("Please select at least one algorithm to compare!")
 else:
     st.info("Configure your benchmark in the sidebar and click 'Run Benchmark'")
+
+# ===== VRP section =======
+with st.expander("VRP solver"):
+    uploaded_file = st.file_uploader("Upload a .vrp file", type=["vrp"])
+    vrp_optimizer = st.selectbox("Optimizer", ["OnePlusOne", "DE", "GeneticDE", "PSO"], index=2)
+    vehicle_count = st.number_input("Number of vehicles", min_value=1, max_value=100, value=25)
+    budget = st.slider("Evaluation budget", 100, 100000, 10000, step=1000)
+    run_vrp = st.button("Solve VRP")
+
+    if uploaded_file and run_vrp:
+        content = uploaded_file.read().decode("utf-8")
+        instance = parse_vrp_file(content)
+
+        with st.spinner("Running optimization..."):
+            best_cost, best_routes = solve_vrp(instance, vehicle_count, budget, optimizer_name=vrp_optimizer)
+
+        st.success(f"Best cost found: {best_cost:.2f}")
+        fig = plot_routes_streamlit(instance, best_routes, best_cost)
+        st.pyplot(fig)
+
+        with st.expander("Solution details"):
+            for i, route in enumerate(best_routes):
+                route_1_based = [cust + 1 for cust in route]
+                st.write(f"Route #{i+1}: {' '.join(map(str, route_1_based))}")
+
 
 # ===== Footer =====
 st.sidebar.markdown("""
