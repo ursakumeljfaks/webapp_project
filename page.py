@@ -342,7 +342,7 @@ else:
 with st.expander("VRP solver"):
     uploaded_file = st.file_uploader("Upload a .vrp file", type=["vrp"])
     vrp_optimizer = st.selectbox("Optimizer", ["OnePlusOne", "DE", "GeneticDE", "PSO"], index=2)
-    vehicle_count = st.number_input("Number of vehicles", min_value=1, max_value=100, value=25)
+    vehicle_count = st.number_input("Number of vehicles", min_value=1, max_value=100, value=1)
     budget = st.slider("Evaluation budget", 100, 100000, 10000, step=1000)
     run_vrp = st.button("Solve VRP")
 
