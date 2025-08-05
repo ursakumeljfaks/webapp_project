@@ -251,3 +251,27 @@ Iteration 15088, New Best Cost: 53442.82
   Route #13: 64 101 50 107 30 68 78 39 109
 ========================================
 
+
+---Using GeneticDE on all, increased penalty_weight to 10000.0---
+
+#k13, optimum = 14971
+instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n110-k13.vrp")
+num_customers = len(instance.demands) - 1  # Dont include depot
+num_vehicles = 13 
+print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=100000, optimizer_name="GeneticDE"))
+ANSWER: 35749.144565434464
+
+
+#k25, optimum = 27591
+instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n101-k25.vrp")
+num_customers = len(instance.demands) - 1  # Dont include depot
+num_vehicles = 25  # k25 file name
+print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=1000000, optimizer_name="GeneticDE"))
+ANSWER: 27874.250455381018
+
+#k14, optimum = 26362
+instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n106-k14.vrp")
+num_customers = len(instance.demands) - 1  # Dont include depot
+num_vehicles = 14  
+print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=1000000, optimizer_name="GeneticDE"))
+ANSWER: 36159.37616151034
