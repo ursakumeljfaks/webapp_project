@@ -45,7 +45,7 @@ def decode_solution_with_capacity(encoded_solution: np.ndarray, instance, num_ve
 
 
 def vrp_objective(encoded_solution: np.ndarray, instance: VRPInstance, 
-                 num_vehicles: int, penalty_weight: float = 1000.0) -> float:
+                 num_vehicles: int, penalty_weight: float = 10000.0) -> float:
     """
     Compute total cost of VRP solution with penalty for constraint violations
     """
@@ -75,7 +75,7 @@ def vrp_objective(encoded_solution: np.ndarray, instance: VRPInstance,
     
     return total_distance + penalty_weight * total_penalty
 
-def solve_vrp(instance, num_vehicles=25, budget=10000, optimizer_name="GeneticDE"):
+def solve_vrp(instance, num_vehicles, budget=10000, optimizer_name="GeneticDE"):
     num_customers = len(instance.demands) - 1
     
     parametrization = ng.p.Array(shape=(num_customers,), lower=0, upper=1)
@@ -95,18 +95,16 @@ def solve_vrp(instance, num_vehicles=25, budget=10000, optimizer_name="GeneticDE
         if cost < best_cost:
             best_cost = cost
             best_vector = vector
-            best_routes = decode_solution_with_capacity(vector, instance, num_vehicles)
+            best_routes = decode_solution_with_capacity(best_vector, instance, num_vehicles)
 
     return best_cost, best_routes
 
-
-# 1. Loading instances
-# instance = load_vrp_file("X-n101-k25.vrp")
+### UNCOMMENT THESE 4 LINES FOR TESTING
+# 1. Loading instances 
+# instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n115-k10.vrp")
 # num_customers = len(instance.demands) - 1  # Dont include depot
-# num_vehicles = 13  # k25 file name
-
-# print(solve_vrp(instance=instance, num_vehicles=25, budget=1000000, optimizer_name="GeneticDE"))
-
+# num_vehicles = 10  # k25 file name
+# print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=100000, optimizer_name="GeneticDE"))
 
 ##### BEFORE THE FUNCTION solve_vrp
 # # 2. Just testing
