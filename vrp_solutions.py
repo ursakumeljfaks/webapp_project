@@ -11,36 +11,40 @@ def decode_solution_with_capacity(encoded_solution: np.ndarray, instance, num_ve
     """
     sorted_customers = np.argsort(encoded_solution)
 
-    sorted_customers = sorted_customers + 1 # +1 to skip depot index 0
+    #sorted_customers = sorted_customers + 1 # +1 to skip depot index 0
 
+    all_node_ids = sorted(instance.node_coords.keys())  # [1, 2, 3, ..., 20]
+    customer_ids = [all_node_ids[idx] for idx in sorted_customers 
+                  if all_node_ids[idx] != instance.depot_index]  # excluding depot
+    
     routes = []
     current_route = []
     current_demand = 0.0
     vehicle_count = 0
 
-    for cust_id in sorted_customers:
-        demand = instance.demands[cust_id]
-        
+    for cust_id in customer_ids: #sorted_customers:
+
+        demand = instance.demands[instance.node_id_to_index[cust_id]]
+
         if current_demand + demand > instance.capacity:
             routes.append(current_route)
-            vehicle_count += 1
-
-            if vehicle_count >= num_vehicles:
-                routes[-1].extend(sorted_customers[len(routes)*len(current_route):])
-                return routes
-
+            if len(routes) >= num_vehicles:
+                # assign remaining customers to the last route
+                remaining = customer_ids[customer_ids.index(cust_id):]
+                routes[-1].extend(remaining)
+                break
             current_route = []
             current_demand = 0.0
-
+        
         current_route.append(cust_id)
         current_demand += demand
-
-    if current_route:
+    
+    if current_route and len(routes) < num_vehicles:
         routes.append(current_route)
-
+    
     while len(routes) < num_vehicles:
         routes.append([])
-
+    
     return routes
 
 
@@ -49,25 +53,27 @@ def vrp_objective(encoded_solution: np.ndarray, instance: VRPInstance,
     """
     Compute total cost of VRP solution with penalty for constraint violations
     """
-    #routes = decode_solution(encoded_solution, num_vehicles)
     routes = decode_solution_with_capacity(encoded_solution, instance, num_vehicles)
     total_distance = 0.0
     total_penalty = 0.0
     
+    depot_index = instance.node_id_to_index[instance.depot_index]
+
     for route in routes:
         if not route:
             continue
             
-        current = 0 #starting at depot index 0
+        current = depot_index #0 #starting at depot index 0 ERROR WAS HERE -> starting at index 0 now, so we need to convert it from 1 to 0-based because of distance_amtrix
         route_demand = 0
         
         for cust_id in route:
-            route_demand += instance.demands[cust_id]
-            total_distance += instance.distance_matrix[current][cust_id]
-            current = cust_id
+            cust_index = instance.node_id_to_index[cust_id] # ADDED, converted it to 0-based
+            route_demand += instance.demands[cust_index] # demands are 0-based
+            total_distance += instance.distance_matrix[current][cust_index] #instance.distance_matrix[current][cust_id] ERROR WAS HERE
+            current = cust_index # cust_id ERROR WAS HERE 0-based
         
         # Return to depot
-        total_distance += instance.distance_matrix[current][0]
+        total_distance += instance.distance_matrix[current][depot_index] # instance.distance_matrix[current][0] ERROR
         
         # Capacity constraint
         if route_demand > instance.capacity:
@@ -80,7 +86,7 @@ def solve_vrp(instance, num_vehicles, budget=10000, optimizer_name="GeneticDE"):
     
     parametrization = ng.p.Array(shape=(num_customers,), lower=0, upper=1)
     optimizer_cls = ng.optimizers.registry[optimizer_name]
-    optimizer = optimizer_cls(parametrization=parametrization, budget=budget)
+    optimizer = optimizer_cls(parametrization=parametrization, budget=budget, num_workers=4)
 
     best_cost = float('inf')
     best_vector = None
@@ -97,14 +103,14 @@ def solve_vrp(instance, num_vehicles, budget=10000, optimizer_name="GeneticDE"):
             best_vector = vector
             best_routes = decode_solution_with_capacity(best_vector, instance, num_vehicles)
 
-    return best_cost, best_routes
+    return best_cost, best_routes, len(best_vector)
 
 ### UNCOMMENT THESE 4 LINES FOR TESTING
 # 1. Loading instances 
-# instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n115-k10.vrp")
-# num_customers = len(instance.demands) - 1  # Dont include depot
-# num_vehicles = 10  # k25 file name
-# print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=100000, optimizer_name="GeneticDE"))
+instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n115-k10.vrp")
+num_customers = len(instance.demands) - 1  # Dont include depot
+num_vehicles = 10  # k25 file name
+print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=1000000, optimizer_name="GeneticDE"))
 
 ##### BEFORE THE FUNCTION solve_vrp
 # # 2. Just testing
