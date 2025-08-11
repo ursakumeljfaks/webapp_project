@@ -9,7 +9,9 @@ class VRPInstance:
         self.node_coords = node_coords
         self.demands = demands
         self.depot_index = depot_index
-        self.node_id_to_index = {node_id: i for i, node_id in enumerate(sorted(node_coords))}
+        self.sorted_node_ids = sorted(node_coords.keys())
+        self.node_id_to_index = {node_id: i for i, node_id in enumerate(self.sorted_node_ids)}
+        #self.node_id_to_index = {node_id: i for i, node_id in enumerate(sorted(node_coords))}
         self.distance_matrix = self._compute_distance_matrix()
 
     def _compute_distance_matrix(self) -> List[List[float]]:
@@ -69,11 +71,11 @@ def parse_vrp_file(content: str) -> VRPInstance:
                 y = float(parts[2])
                 node_coords[node_id] = (x, y)
         
-        # {0: 0.0, 1: 38.0, 2: 51.0, ...}, 0.0, 38.0, 51.0 are demands
+        # {1: 0.0, 2: 38.0, 3: 51.0, ...}, 0.0, 38.0, 51.0 are demands
         elif current_section == "DEMAND":
             parts = re.split(r'\s+', line.strip())
             if len(parts) >= 2:
-                node_id = int(parts[0]) - 1 # for 0-based indexing
+                node_id = int(parts[0]) # IMPORTANT 1-based indexing
                 demand = float(parts[1])
                 demands[node_id] = demand
                 
