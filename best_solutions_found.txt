@@ -261,7 +261,6 @@ num_vehicles = 13
 print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=100000, optimizer_name="GeneticDE"))
 ANSWER: 35749.144565434464
 
-
 #k25, optimum = 27591
 instance = load_vrp_file("/Users/janze/Documents/ijs/webapp_project/X-n101-k25.vrp")
 num_customers = len(instance.demands) - 1  # Dont include depot
@@ -275,3 +274,24 @@ num_customers = len(instance.demands) - 1  # Dont include depot
 num_vehicles = 14  
 print(solve_vrp(instance=instance, num_vehicles=num_vehicles, budget=1000000, optimizer_name="GeneticDE"))
 ANSWER: 36159.37616151034
+
+========================================
+
+---Using the script better_vrp_solutions.py---
+
+#k25, optimum = 27591
+Objective value: 29248
+Error = |27591-29248|/27591 = 0.0601 => 6%
+! also there is a mistake it should probably be k26, because there are 26 routes
+
+#k14, optimum = 26362
+Objective value: 27124
+Error = |26362-27124|/26362 = 0.0289 => 2.89%
+
+#k13, optimum = 14971
+Objective value: 15550
+Error = |14971-15550|/14971 = 0.0372 => 3.72%
+
+#k10, optimum = 12747
+Objective value: 13379
+Error = |26362-27124|/26362 = 0.0496 => 4.96%
