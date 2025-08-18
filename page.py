@@ -6,6 +6,7 @@ import nevergrad as ng
 from scipy.stats import wilcoxon
 from vrp_parser import *
 from vrp_solutions import *
+from vrp_code_streamlit import *
 
 # Benchmark functions
 def sphere(x):
@@ -338,29 +339,60 @@ elif run_button and not algorithms:
 else:
     st.info("Configure your benchmark in the sidebar and click 'Run Benchmark'")
 
-# ===== VRP section =======
+# ===== VRP section =======, if you want to see previous version with Nevergrad uncommnet this first section and comment the other one, otherwise it wont work
+# with st.expander("VRP solver"):
+#     uploaded_file = st.file_uploader("Upload a .vrp file", type=["vrp"],key="vrp_uploader_1")
+#     vrp_optimizer = st.selectbox("Optimizer", ["OnePlusOne", "DE", "GeneticDE", "PSO"], index=2)
+#     vehicle_count = st.number_input("Number of vehicles", min_value=1, max_value=100, value=1)
+#     budget = st.slider("Evaluation budget", 100, 100000, 10000, step=1000)
+#     run_vrp = st.button("Solve VRP")
+
+#     if uploaded_file and run_vrp:
+#         content = uploaded_file.read().decode("utf-8")
+#         instance = parse_vrp_file(content)
+
+#         with st.spinner("Running optimization..."):
+#             best_cost, best_routes = solve_vrp(instance, vehicle_count, budget, optimizer_name=vrp_optimizer)
+
+#         st.success(f"Best cost found: {best_cost:.2f}")
+#         fig = plot_routes_streamlit(instance, best_routes, best_cost)
+#         st.pyplot(fig)
+
+#         with st.expander("Solution details"):
+#             for i, route in enumerate(best_routes):
+#                 route_1_based = [cust + 1 for cust in route]
+#                 st.write(f"Route #{i+1}: {' '.join(map(str, route_1_based))}")
+
 with st.expander("VRP solver"):
-    uploaded_file = st.file_uploader("Upload a .vrp file", type=["vrp"])
-    vrp_optimizer = st.selectbox("Optimizer", ["OnePlusOne", "DE", "GeneticDE", "PSO"], index=2)
-    vehicle_count = st.number_input("Number of vehicles", min_value=1, max_value=100, value=1)
-    budget = st.slider("Evaluation budget", 100, 100000, 10000, step=1000)
-    run_vrp = st.button("Solve VRP")
+    uploaded_file2 = st.file_uploader("Upload a .vrp file", type=["vrp"], key="vrp_uploader_2")
+    vehicle_count2 = st.number_input("Number of vehicles", min_value=1, max_value=100, value=10)
+    time_limit = st.number_input("Time limit (seconds)", min_value=1, max_value=60, value=5)
+    run_vrp2 = st.button("Solve VRP")
 
-    if uploaded_file and run_vrp:
-        content = uploaded_file.read().decode("utf-8")
-        instance = parse_vrp_file(content)
-
-        with st.spinner("Running optimization..."):
-            best_cost, best_routes = solve_vrp(instance, vehicle_count, budget, optimizer_name=vrp_optimizer)
-
-        st.success(f"Best cost found: {best_cost:.2f}")
-        fig = plot_routes_streamlit(instance, best_routes, best_cost)
-        st.pyplot(fig)
-
-        with st.expander("Solution details"):
-            for i, route in enumerate(best_routes):
-                route_1_based = [cust + 1 for cust in route]
-                st.write(f"Route #{i+1}: {' '.join(map(str, route_1_based))}")
+    if uploaded_file2 and run_vrp2:
+        try:
+            content2 = uploaded_file2.read().decode("utf-8")
+            instance2 = parse_vrp_file(content2)
+            
+            with st.spinner("Running optimization..."):
+                total_distance, tours = solve_vrp(instance2, vehicle_count2, time_limit)
+            
+            if tours:
+                st.success(f"Total distance: {total_distance}")
+                
+                fig2 = plot_routes_streamlit(instance2, tours)
+                st.pyplot(fig2)
+                
+                with st.expander("Route Details"):
+                    for i, route in enumerate(tours):
+                        if len(route) > 1:  # Skip empty routes
+                            route_str = " → ".join(map(str, route))
+                            st.write(f"**Route #{i+1}**: {route_str}")
+            else:
+                st.error("No solution found!")
+                
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
 
 
 # ===== Footer =====
